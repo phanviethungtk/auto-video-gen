@@ -209,11 +209,11 @@ describe("loadConfig", () => {
     it("accepts VIDEO_THEME=sorata and reads brand settings", () => {
       process.env.VIDEO_THEME = "sorata";
       process.env.BRAND_TAG = "KẾ TOÁN THUẾ";
-      process.env.BRAND_LOGO_PATH = "assets/brand/sorata-mark.png";
+      process.env.BRAND_LOGO_PATH = "assets/brand/SORATA_icon_xanh.png";
       const cfg = loadConfig();
       expect(cfg.videoTheme).toBe("sorata");
       expect(cfg.brandTag).toBe("KẾ TOÁN THUẾ");
-      expect(cfg.brandLogoPath).toBe("assets/brand/sorata-mark.png");
+      expect(cfg.brandLogoPath).toBe("assets/brand/SORATA_icon_xanh.png");
     });
 
     it("keeps the original header when brand settings are absent", () => {

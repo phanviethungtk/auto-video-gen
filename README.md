@@ -131,7 +131,7 @@ Các thay đổi so với bản gốc:
 
 - **Theme `sorata-dark`** (`VIDEO_THEME=sorata-dark`, mặc định cho clip): màu SORATA trên nền tối — nền xanh than `#16232F`, thẻ `#2C4358`, chữ kem, nhấn terracotta, không hiệu ứng phát sáng; Be Vietnam Pro + Noto Sans.
 - **Theme `sorata`** (`VIDEO_THEME=sorata`): bản nền kem giống website, dùng khi cần clip sáng.
-- **Header tuỳ biến**: `BRAND_TAG` (dòng nhỏ dưới tên kênh) và `BRAND_LOGO_PATH` (logo trong ô icon). Avatar cuối video là logo SORATA.
+- **Header tuỳ biến**: `BRAND_TAG` (dòng nhỏ dưới tên kênh) và `BRAND_LOGO_PATH` (logo trong ô icon). Avatar cuối video và logo góc trên lấy từ bộ logo SORATA trên Drive (`assets/brand/`: icon trắng cho nền tối, icon xanh cho nền sáng).
 - **Giọng VoiceStudio** (`TTS_PROVIDER=voicestudio`): mở app VoiceStudio trước khi chạy. Nếu app chưa bật, pipeline báo lỗi rõ và bạn có thể đổi lại `TTS_PROVIDER=edge-tts`.
 - **Âm lượng chuẩn mạng xã hội**: voice + SFX được chuẩn hoá -14 LUFS / -2 dBTP.
 - **Quy tắc nội dung trong skill `/create-news-video`**: không bịa số liệu, nêu căn cứ pháp lý khi nguồn có, và **dừng lại cho bạn duyệt kịch bản** trước khi render.
