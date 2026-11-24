@@ -1,8 +1,8 @@
 import "dotenv/config";
 
 export type TtsProvider = "edge-tts" | "lucylab" | "elevenlabs" | "vbee" | "voicestudio";
-export type VideoTheme = "dark-neon" | "light-pro" | "sorata";
-export const VIDEO_THEMES: readonly VideoTheme[] = ["dark-neon", "light-pro", "sorata"];
+export type VideoTheme = "dark-neon" | "light-pro" | "sorata" | "sorata-dark";
+export const VIDEO_THEMES: readonly VideoTheme[] = ["dark-neon", "light-pro", "sorata", "sorata-dark"];
 
 export interface TiktokConfig {
   displayName: string;

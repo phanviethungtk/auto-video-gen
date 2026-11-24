@@ -222,6 +222,11 @@ describe("loadConfig", () => {
       expect(cfg.brandLogoPath).toBeUndefined();
     });
 
+    it("accepts VIDEO_THEME=sorata-dark (clip palette)", () => {
+      process.env.VIDEO_THEME = "sorata-dark";
+      expect(loadConfig().videoTheme).toBe("sorata-dark");
+    });
+
     it("rejects an unknown VIDEO_THEME", () => {
       process.env.VIDEO_THEME = "pink";
       expect(() => loadConfig()).toThrow(/VIDEO_THEME/);

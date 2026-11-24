@@ -129,7 +129,8 @@ npm run pipeline -- tests/fixtures/sample-script-no-image.json
 
 Các thay đổi so với bản gốc:
 
-- **Theme `sorata`** (`VIDEO_THEME=sorata`): màu và font theo SORATA Design System (nền kem, xanh `#3e5c76`, nhấn terracotta, Be Vietnam Pro + Noto Sans).
+- **Theme `sorata-dark`** (`VIDEO_THEME=sorata-dark`, mặc định cho clip): màu SORATA trên nền tối — nền xanh than `#16232F`, thẻ `#2C4358`, chữ kem, nhấn terracotta, không hiệu ứng phát sáng; Be Vietnam Pro + Noto Sans.
+- **Theme `sorata`** (`VIDEO_THEME=sorata`): bản nền kem giống website, dùng khi cần clip sáng.
 - **Header tuỳ biến**: `BRAND_TAG` (dòng nhỏ dưới tên kênh) và `BRAND_LOGO_PATH` (logo trong ô icon). Avatar cuối video là logo SORATA.
 - **Giọng VoiceStudio** (`TTS_PROVIDER=voicestudio`): mở app VoiceStudio trước khi chạy. Nếu app chưa bật, pipeline báo lỗi rõ và bạn có thể đổi lại `TTS_PROVIDER=edge-tts`.
 - **Âm lượng chuẩn mạng xã hội**: voice + SFX được chuẩn hoá -14 LUFS / -2 dBTP.
