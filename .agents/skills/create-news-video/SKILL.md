@@ -52,9 +52,20 @@ Following the schema in `docs/superpowers/specs/2026-04-29-auto-news-video-desig
 - Each scene voiceText is 1-3 short sentences, văn nói (spoken style, not formal)
 - No emoji, no markdown in voiceText
 
+### ⚠️ CRITICAL: Accuracy rules (SORATA — tax & accounting content)
+
+These videos are published by an accounting firm. One wrong number, date or legal reference costs more trust than the video earns. These rules override everything below about hooks and style.
+
+- **Never invent figures.** Every number, percentage, amount, deadline, date, tax rate and legal document number in `voiceText` or `templateData` must appear in the source content. If the source does not state it, leave it out — do not estimate, round up for drama, or "fill in" a typical value.
+- **No invented results or names**: no customer names, savings claims, multipliers ("gấp đôi", "tiết kiệm 50%") or testimonials unless the source states them word for word.
+- **Name the legal basis when the source gives it** (e.g. "Nghị định 70/2025/NĐ-CP") — on screen in `templateData`, spoken in `voiceText` with numbers spelled out per the phonetic rules.
+- **Say what is uncertain.** If the source says a rule is a draft, proposed, or not yet in force, the script must say so too ("dự thảo", "đề xuất", "chưa có hiệu lực").
+- **No advice that depends on the viewer's facts.** Prefer "doanh nghiệp nên kiểm tra…" over "bạn phải nộp…" when obligations depend on the business type, size or tax method.
+- **Pacing:** one idea per scene; keep each scene's `voiceText` to about 10 seconds or less (≈ 25–35 words) so something on screen changes every few seconds.
+
 ### ⚠️ CRITICAL: Vietnamese TTS Phonetic Rules
 
-The `voiceText` field is read aloud by Edge TTS / LucyLab / ElevenLabs / Vbee. **Numbers and symbols are read literally** — if you write "5.5", TTS may say "năm rưỡi" (five and a half — WRONG for version numbers). **Always spell out numbers in Vietnamese phonetic form** in `voiceText`. The `templateData` fields (visual text on screen) can keep the original "5.5" / "82.7%" formatting.
+The `voiceText` field is read aloud by Edge TTS / LucyLab / ElevenLabs / Vbee / VoiceStudio. **Numbers and symbols are read literally** — if you write "5.5", TTS may say "năm rưỡi" (five and a half — WRONG for version numbers). **Always spell out numbers in Vietnamese phonetic form** in `voiceText`. The `templateData` fields (visual text on screen) can keep the original "5.5" / "82.7%" formatting.
 
 **Mandatory rules for `voiceText`:**
 
@@ -74,7 +85,7 @@ The `voiceText` field is read aloud by Edge TTS / LucyLab / ElevenLabs / Vbee. *
 | Percentage with decimal | `30%` | `ba mươi phần trăm` |
 | Time | `60 giây` | `sáu mươi giây` |
 | Frequency | `5G` | `năm gờ` (be careful — TTS often says "năm-gờ") |
-| Channel name | `CườngIT` / `Cường IT` | `Cường ai ti` |
+| Channel name | `SORATA` (all caps may be spelled letter by letter) | `Sorata` |
 
 **Notation choices:**
 - For decimal point use `chấm` (more spoken/natural) or `phẩy` (formal). Both work; pick consistent.
@@ -140,22 +151,22 @@ RIGHT (natural):
 {
   "id": "outro",
   "type": "outro",
-  "voiceText": "Theo dõi CườngIT để xem bản tin mới mỗi ngày.",
+  "voiceText": "Theo dõi Sorata để cập nhật kiến thức thuế, kế toán.",
   "visual": {
     "background": { "type": "gradient", "preset": "outro-purple" },
     "text": {
       "position": "center",
       "style": "outro-card",
       "lines": [
-        { "content": "Xem bản tin mới mỗi ngày", "emphasis": "primary", "animation": "fade-in" },
-        { "content": "CườngIT",            "emphasis": "channel", "animation": "scale-pop" },
+        { "content": "Cập nhật thuế, kế toán", "emphasis": "primary", "animation": "fade-in" },
+        { "content": "SORATA",             "emphasis": "channel", "animation": "scale-pop" },
         { "content": "Nguồn: <DOMAIN>",          "emphasis": "muted",   "animation": "fade-in-late" }
       ]
     }
   }
 }
 ```
-Replace `<DOMAIN>` with the actual domain string. Note: outro line 1 is shortened to fit 25-char schema rule (full CTA "Theo dõi để xem bản tin mới mỗi ngày" is 36 chars).
+Replace `<DOMAIN>` with the actual domain string. Note: every outro line must fit the 25-char rule.
 
 ### Step 5: Self-validate before writing
 
@@ -172,6 +183,16 @@ If invalid, fix yourself silently. Up to 2 self-correction passes. After that, w
 ### Step 6: Write script.json
 
 Use the `write_to_file` tool to write the validated JSON to `<outputDir>/script.json`.
+
+### Step 6.5: Stop for review (REQUIRED before rendering)
+
+Do NOT run the pipeline yet. Show the user, in the chat:
+
+1. Every scene's `voiceText`, numbered, as plain text.
+2. A short table of every number, date, rate and legal reference used, each with the exact source sentence it came from.
+3. Anything you left out because the source was unclear.
+
+Then wait. Run Step 7 only after the user explicitly approves (e.g. "OK", "duyệt", "chạy đi"). If they ask for changes, edit `script.json` and show the review again.
 
 ### Step 7: Run the pipeline
 
@@ -198,9 +219,9 @@ Write a short Vietnamese caption + exactly 4 hashtags for the video, based on `s
 - No markdown, no line breaks inside the caption itself.
 
 **Hashtag rules — exactly 4, in this order:**
-1. One broad tech/niche tag in Vietnamese (e.g. `#congnghe`, `#thuthuat`)
-2. One or two tags specific to the video's actual topic/product/company (e.g. `#openai`, `#ai`, `#pdf`, `#codegraph`)
-3. One channel/discovery tag: `#cuongit` (and `#fyp` or `#xuhuong` if there's room — still capped at 4 total)
+1. One broad niche tag in Vietnamese (e.g. `#ketoan`, `#thue`, `#doanhnghiep`)
+2. One or two tags specific to the video's actual topic/product/company (e.g. `#hoadondientu`, `#thuetncn`, `#hokinhdoanh`)
+3. One channel/discovery tag: `#sorata` (and `#fyp` or `#xuhuong` if there's room — still capped at 4 total)
 - Lowercase, no spaces, no punctuation inside a tag.
 
 Write the result to `<outputDir>/caption.txt` using `write_to_file`:
@@ -226,6 +247,11 @@ Tổng thời lượng: XX.Xs
 ```
 
 ## Sound Effects (SFX)
+
+**Licensing (SORATA): only use SFX you are allowed to publish commercially.**
+- Put only CC0 / royalty-free-for-commercial-use or self-made files in `assets/sfx/`, and log each file's source and licence in `assets/sfx/SOURCES.md`.
+- Do NOT run `npm run sfx:download` for business videos: it scrapes myinstants.com, whose clips have unclear rights.
+- If `assets/sfx/` is empty the pipeline simply renders without SFX — that is fine.
 
 **You almost never need to set the `sfx` field.** The pipeline has a smart 3-tier selector that picks the right SFX for each scene automatically:
 

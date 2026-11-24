@@ -23,6 +23,17 @@ const ENV_KEYS = [
   "VBEE_SPEED_RATE",
   "VBEE_POLL_INTERVAL_MS",
   "VBEE_POLL_TIMEOUT_MS",
+  "VOICESTUDIO_ENDPOINT",
+  "VOICESTUDIO_MODEL",
+  "VOICESTUDIO_VOICE",
+  "VOICESTUDIO_LANGUAGE",
+  "VOICESTUDIO_SPEED",
+  "VOICESTUDIO_API_KEY",
+  "VOICESTUDIO_TIMEOUT_MS",
+  "VIDEO_THEME",
+  "BRAND_TAG",
+  "BRAND_LOGO_PATH",
+  "BRAND_WORDMARK_PATH",
   "TTS_CONCURRENCY",
 ];
 
@@ -168,6 +179,61 @@ describe("loadConfig", () => {
       const cfg = loadConfig();
       expect(cfg.vbeeVoiceCode).toBe("n_hanoi_female_nguyetnga2_book_vc");
       expect(cfg.vbeeSpeedRate).toBe(1.2);
+    });
+  });
+
+  describe("VoiceStudio provider", () => {
+    it("defaults to local VoxCPM2 in Vietnamese with no key required", () => {
+      process.env.TTS_PROVIDER = "voicestudio";
+      const cfg = loadConfig();
+      expect(cfg.ttsProvider).toBe("voicestudio");
+      expect(cfg.voicestudioEndpoint).toBe("http://localhost:3900/v1");
+      expect(cfg.voicestudioModel).toBe("voxcpm2");
+      expect(cfg.voicestudioVoice).toBe("default");
+      expect(cfg.voicestudioLanguage).toBe("vi");
+      expect(cfg.voicestudioApiKey).toBeUndefined();
+    });
+
+    it("respects VOICESTUDIO_* overrides", () => {
+      process.env.TTS_PROVIDER = "voicestudio";
+      process.env.VOICESTUDIO_VOICE = "Giong SORATA";
+      process.env.VOICESTUDIO_SPEED = "1.1";
+      process.env.VOICESTUDIO_API_KEY = "vs_key";
+      const cfg = loadConfig();
+      expect(cfg.voicestudioVoice).toBe("Giong SORATA");
+      expect(cfg.voicestudioSpeed).toBe(1.1);
+      expect(cfg.voicestudioApiKey).toBe("vs_key");
+    });
+  });
+
+  describe("theme and brand", () => {
+    it("accepts VIDEO_THEME=sorata and reads brand settings", () => {
+      process.env.VIDEO_THEME = "sorata";
+      process.env.BRAND_TAG = "KẾ TOÁN THUẾ";
+      process.env.BRAND_LOGO_PATH = "assets/brand/SORATA_icon_xanh.png";
+      process.env.BRAND_WORDMARK_PATH = "assets/brand/SORATA_logo_xanh.png";
+      const cfg = loadConfig();
+      expect(cfg.videoTheme).toBe("sorata");
+      expect(cfg.brandTag).toBe("KẾ TOÁN THUẾ");
+      expect(cfg.brandLogoPath).toBe("assets/brand/SORATA_icon_xanh.png");
+      expect(cfg.brandWordmarkPath).toBe("assets/brand/SORATA_logo_xanh.png");
+    });
+
+    it("keeps the original header when brand settings are absent", () => {
+      const cfg = loadConfig();
+      expect(cfg.brandTag).toBe("BLOG IT");
+      expect(cfg.brandLogoPath).toBeUndefined();
+      expect(cfg.brandWordmarkPath).toBeUndefined();
+    });
+
+    it("accepts VIDEO_THEME=sorata-dark (clip palette)", () => {
+      process.env.VIDEO_THEME = "sorata-dark";
+      expect(loadConfig().videoTheme).toBe("sorata-dark");
+    });
+
+    it("rejects an unknown VIDEO_THEME", () => {
+      process.env.VIDEO_THEME = "pink";
+      expect(() => loadConfig()).toThrow(/VIDEO_THEME/);
     });
   });
 

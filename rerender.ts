@@ -3,7 +3,7 @@
 //
 // Usage: npx tsx rerender.ts <outputDir>
 
-import { readFile, writeFile, copyFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ScriptSchema } from "./src/render/script-schema.js";
@@ -13,9 +13,9 @@ import { indexSfxLibrary, pickSfxForScene, defaultPlayback } from "./src/assets/
 import { existsSync } from "node:fs";
 import { composeHtml } from "./src/render/html-composer.js";
 import { renderWithHyperframes } from "./src/render/hyperframes-runner.js";
+import { copyThemeFiles, prepareBrandAssets } from "./src/render/project-files.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const TPL_DIR = join(__dirname, "src", "render", "templates");
 const SFX_DIR = join(__dirname, "assets", "sfx");
 const SCENE_GAP_SEC = 0.3;
 
@@ -107,20 +107,7 @@ async function main() {
   const bgImageRelPath = fs.existsSync(bgImagePath) ? "images/bg.jpg" : null;
   console.log(`bgImage: ${bgImageRelPath ?? "(none — gradient fallback)"}`);
 
-  // TikTok avatar — find bundled (jpg/jpeg/png/webp) and copy to output dir
-  let bundledAvatar: string | null = null;
-  for (const ext of ["jpg", "jpeg", "png", "webp"]) {
-    const p = join(__dirname, "assets", `avatar.${ext}`);
-    if (existsSync(p)) { bundledAvatar = p; break; }
-  }
-  if (!bundledAvatar) {
-    throw new Error("No bundled avatar found. Place an image at assets/avatar.{jpg,png,webp}");
-  }
-  const ttAvatarExt = bundledAvatar.split(".").pop()!.toLowerCase();
-  const ttAvatarFile = `tiktok-avatar.${ttAvatarExt}`;
-  const ttAvatarOut = join(outputDir, ttAvatarFile);
-  // Always re-copy in case bundled was updated
-  await copyFile(bundledAvatar, ttAvatarOut);
+  const brand = await prepareBrandAssets(cfg, outputDir);
 
   // Compose HTML
   const html = composeHtml({
@@ -130,7 +117,10 @@ async function main() {
     bgImageRelPath,
     audioRelPath: "voice.mp3",
     tiktok: cfg.tiktok,
-    tiktokAvatarRelPath: ttAvatarFile,
+    tiktokAvatarRelPath: brand.tiktokAvatarRelPath,
+    brandTag: cfg.brandTag,
+    brandLogoRelPath: brand.brandLogoRelPath,
+    brandWordmarkRelPath: brand.brandWordmarkRelPath,
     outroHoldSec: 3,
   });
   await writeFile(join(outputDir, "index.html"), html);
@@ -140,8 +130,7 @@ async function main() {
     name: script.metadata.title,
     createdAt: new Date().toISOString(),
   }, null, 2));
-  await copyFile(join(TPL_DIR, "styles.css"),    join(outputDir, "styles.css"));
-  await copyFile(join(TPL_DIR, "animations.js"), join(outputDir, "animations.js"));
+  await copyThemeFiles(outputDir, cfg.videoTheme);
 
   // Render
   const videoPath = join(outputDir, "video.mp4");

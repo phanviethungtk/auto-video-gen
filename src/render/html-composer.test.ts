@@ -98,4 +98,41 @@ describe("composeHtml", () => {
     expect(html).toContain('class="bg gradient-news-dark"');
     expect(html).not.toContain("background-image: url");
   });
+
+  it("renders the brand tag and logo in the header when given", () => {
+    const script = JSON.parse(readFileSync("tests/fixtures/sample-script-no-image.json", "utf8")) as Script;
+    const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 5 }));
+    const html = composeHtml({
+      script,
+      sceneAudio,
+      gapSec: 0.3,
+      bgImageRelPath: null,
+      audioRelPath: "voice.mp3",
+      brandTag: "KẾ TOÁN THUẾ",
+      brandLogoRelPath: "brand-logo.png",
+    });
+    expect(html).toContain('<div class="brand-tag">KẾ TOÁN THUẾ</div>');
+    expect(html).toContain('class="brand-icon brand-icon--logo"><img src="brand-logo.png"');
+    expect(html).not.toContain("BLOG IT");
+  });
+
+  it("keeps the text icon and default tag without brand settings", () => {
+    const script = JSON.parse(readFileSync("tests/fixtures/sample-script-no-image.json", "utf8")) as Script;
+    const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 5 }));
+    const html = composeHtml({ script, sceneAudio, gapSec: 0.3, bgImageRelPath: null, audioRelPath: "voice.mp3" });
+    expect(html).toContain('<div class="brand-icon">&gt;_</div>');
+    expect(html).toContain('<div class="brand-tag">BLOG IT</div>');
+  });
+
+  it("shows the wordmark image in the outro when given, keeping the name as alt text", () => {
+    const script = JSON.parse(readFileSync("tests/fixtures/sample-script-no-image.json", "utf8")) as Script;
+    const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 5 }));
+    const outro = script.scenes.find((s) => s.templateData.template === "outro")!;
+    const name = (outro.templateData as { channelName: string }).channelName;
+    const html = composeHtml({
+      script, sceneAudio, gapSec: 0.3, bgImageRelPath: null, audioRelPath: "voice.mp3",
+      brandWordmarkRelPath: "brand-wordmark.png",
+    });
+    expect(html).toContain(`<div class="out-channel"><img class="out-channel-logo" src="brand-wordmark.png" alt="${name}" /></div>`);
+  });
 });

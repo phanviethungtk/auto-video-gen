@@ -140,16 +140,23 @@ export interface SfxMixSpec {
  * - Output is mp3 at 192kbps
  *
  * If `sfxList` is empty, just copies voicePath → outPath.
+ *
+ * Either way the result is loudness-normalised for social platforms
+ * (TikTok/Reels/Shorts): -14 LUFS integrated, -2 dBTP true peak.
  */
+/** EBU R128 single-pass loudness target used for every published video. */
+export const LOUDNORM_FILTER = "loudnorm=I=-14:TP=-2:LRA=11";
+
 export async function mixSfxOntoVoice(
   voicePath: string,
   sfxList: SfxMixSpec[],
   outPath: string,
 ): Promise<void> {
   if (sfxList.length === 0) {
-    // No SFX — just normalize/copy voice
+    // No SFX — just loudness-normalise the voice
     await run("ffmpeg", [
       "-y", "-i", voicePath,
+      "-af", LOUDNORM_FILTER,
       "-c:a", "libmp3lame", "-b:a", "192k", "-ar", "44100",
       outPath,
     ]);
@@ -189,7 +196,7 @@ export async function mixSfxOntoVoice(
     `[0:a]aresample=44100,aformat=sample_fmts=fltp:channel_layouts=mono[voice]`
   );
   filterParts.push(
-    `[voice]${mixedSfxLabel}amix=inputs=2:duration=first:dropout_transition=0:normalize=0[out]`
+    `[voice]${mixedSfxLabel}amix=inputs=2:duration=first:dropout_transition=0:normalize=0,${LOUDNORM_FILTER}[out]`
   );
 
   ffArgs.push(

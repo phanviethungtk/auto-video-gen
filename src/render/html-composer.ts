@@ -35,6 +35,12 @@ export interface ComposeArgs {
   tiktok?: TiktokConfig;
   /** Relative path to avatar image inside the output dir (e.g. "tiktok-avatar.jpg"). */
   tiktokAvatarRelPath?: string;
+  /** Small tag under the channel name in the header. Default "BLOG IT". */
+  brandTag?: string;
+  /** Relative path to a logo image for the header icon box. Omit to keep the ">_" text icon. */
+  brandLogoRelPath?: string;
+  /** Relative path to the full wordmark, shown instead of the channel name text in the outro. */
+  brandWordmarkRelPath?: string;
   /** Extra seconds added to outro scene visual duration after voice ends (TikTok card hold). Default 3. */
   outroHoldSec?: number;
 }
@@ -61,11 +67,11 @@ export function composeHtml(args: ComposeArgs): string {
 
   // Render scenes
   const sceneHtml = timing.map(({ scene, start, duration }) => {
-    return renderScene(scene, start, duration, bgImageRelPath, tiktok, tiktokAvatar);
+    return renderScene(scene, start, duration, bgImageRelPath, tiktok, tiktokAvatar, args.brandWordmarkRelPath);
   }).join("\n");
 
   // Persistent shell — uses tiktok handle in footer
-  const shellHtml = renderShell(script.metadata, tiktok);
+  const shellHtml = renderShell(script.metadata, tiktok, args.brandTag ?? "BLOG IT", args.brandLogoRelPath);
 
   const animJs = readFileSync(join(TPL_DIR, "animations.js"), "utf8");
 
@@ -80,7 +86,12 @@ export function composeHtml(args: ComposeArgs): string {
 }
 
 // ── PERSISTENT SHELL ───────────────────────────────────────────────────────
-function renderShell(metadata: Script["metadata"], tiktok: TiktokConfig): string {
+function renderShell(
+  metadata: Script["metadata"],
+  tiktok: TiktokConfig,
+  brandTag: string,
+  brandLogoRelPath?: string,
+): string {
   const channel = escapeHtml(metadata.channel);
   const domain = escapeHtml(metadata.source.domain);
   const handle = escapeHtml(tiktok.handle);
@@ -89,10 +100,12 @@ function renderShell(metadata: Script["metadata"], tiktok: TiktokConfig): string
 <div class="shell-bg"></div>
 
 <div class="brand-shell-header">
-  <div class="brand-icon">&gt;_</div>
+  ${brandLogoRelPath
+    ? `<div class="brand-icon brand-icon--logo"><img src="${escapeHtml(brandLogoRelPath)}" alt="${channel}" /></div>`
+    : `<div class="brand-icon">&gt;_</div>`}
   <div class="brand-text">
     <div class="brand-name">${channel}</div>
-    <div class="brand-tag">BLOG IT</div>
+    <div class="brand-tag">${escapeHtml(brandTag)}</div>
   </div>
 </div>
 
@@ -117,6 +130,7 @@ function renderScene(
   bgImageRelPath: string | null,
   tiktok: TiktokConfig,
   tiktokAvatarRelPath: string,
+  brandWordmarkRelPath?: string,
 ): string {
   const td = scene.templateData;
 
@@ -145,7 +159,7 @@ function renderScene(
       layoutName = "callout";
       break;
     case "outro":
-      inner = renderOutroInner(td, tiktok, tiktokAvatarRelPath);
+      inner = renderOutroInner(td, tiktok, tiktokAvatarRelPath, brandWordmarkRelPath);
       layoutName = "outro";
       break;
     default: {
@@ -255,12 +269,17 @@ function renderOutroInner(
   td: Extract<TemplateDataType, { template: "outro" }>,
   tiktok: TiktokConfig,
   avatarRelPath: string,
+  wordmarkRelPath?: string,
 ): string {
   const ttCard = renderTiktokCard(tiktok, avatarRelPath);
+  // Wordmark image replaces the typed channel name; the channel name stays as alt text.
+  const channel = wordmarkRelPath
+    ? `<img class="out-channel-logo" src="${escapeHtml(wordmarkRelPath)}" alt="${escapeHtml(td.channelName)}" />`
+    : escapeHtml(td.channelName);
   return `
 <div class="layout-outro">
   <div class="out-cta-top">${escapeHtml(td.ctaTop)}</div>
-  <div class="out-channel">${escapeHtml(td.channelName)}</div>
+  <div class="out-channel">${channel}</div>
   <div class="out-underline"></div>
   <div class="out-source">Nguồn: ${escapeHtml(td.source)}</div>
 </div>

@@ -1,7 +1,8 @@
 import "dotenv/config";
 
-export type TtsProvider = "edge-tts" | "lucylab" | "elevenlabs" | "vbee";
-export type VideoTheme = "dark-neon" | "light-pro";
+export type TtsProvider = "edge-tts" | "lucylab" | "elevenlabs" | "vbee" | "voicestudio";
+export type VideoTheme = "dark-neon" | "light-pro" | "sorata" | "sorata-dark";
+export const VIDEO_THEMES: readonly VideoTheme[] = ["dark-neon", "light-pro", "sorata", "sorata-dark"];
 
 export interface TiktokConfig {
   displayName: string;
@@ -42,8 +43,24 @@ export interface Config {
   vbeePollIntervalMs: number;
   vbeePollTimeoutMs: number;
 
+  // VoiceStudio (local, OpenAI-compatible)
+  voicestudioEndpoint: string;
+  voicestudioModel: string;
+  voicestudioVoice: string;
+  voicestudioLanguage: string;
+  voicestudioSpeed: number;
+  voicestudioApiKey?: string;
+  voicestudioTimeoutMs: number;
+
   // TikTok follow card (outro)
   tiktok: TiktokConfig;
+
+  /** Persistent header: small tag under the channel name (e.g. "KẾ TOÁN THUẾ"). */
+  brandTag: string;
+  /** Optional path to a square logo image shown in the header icon box. */
+  brandLogoPath?: string;
+  /** Optional path to the full wordmark shown instead of the channel name in the outro. */
+  brandWordmarkPath?: string;
 
   ttsConcurrency: number;
 
@@ -75,10 +92,11 @@ export function loadConfig(): Config {
     provider !== "edge-tts" &&
     provider !== "lucylab" &&
     provider !== "elevenlabs" &&
-    provider !== "vbee"
+    provider !== "vbee" &&
+    provider !== "voicestudio"
   ) {
     throw new Error(
-      `TTS_PROVIDER must be "edge-tts", "lucylab", "elevenlabs" or "vbee", got "${rawProvider}"`
+      `TTS_PROVIDER must be "edge-tts", "lucylab", "elevenlabs", "vbee" or "voicestudio", got "${rawProvider}"`
     );
   }
 
@@ -125,8 +143,8 @@ export function loadConfig(): Config {
   }
 
   const videoTheme = (process.env.VIDEO_THEME ?? "dark-neon") as VideoTheme;
-  if (videoTheme !== "dark-neon" && videoTheme !== "light-pro") {
-    throw new Error(`VIDEO_THEME must be "dark-neon" or "light-pro", got "${videoTheme}"`);
+  if (!VIDEO_THEMES.includes(videoTheme)) {
+    throw new Error(`VIDEO_THEME must be one of ${VIDEO_THEMES.map((t) => `"${t}"`).join(", ")}, got "${videoTheme}"`);
   }
 
   return {
@@ -151,12 +169,22 @@ export function loadConfig(): Config {
     vbeeSpeedRate: floatDefault("VBEE_SPEED_RATE", 1.0),
     vbeePollIntervalMs: intDefault("VBEE_POLL_INTERVAL_MS", 2000),
     vbeePollTimeoutMs: intDefault("VBEE_POLL_TIMEOUT_MS", 60000),
+    voicestudioEndpoint: process.env.VOICESTUDIO_ENDPOINT ?? "http://localhost:3900/v1",
+    voicestudioModel: process.env.VOICESTUDIO_MODEL ?? "voxcpm2",
+    voicestudioVoice: process.env.VOICESTUDIO_VOICE ?? "default",
+    voicestudioLanguage: process.env.VOICESTUDIO_LANGUAGE ?? "vi",
+    voicestudioSpeed: floatDefault("VOICESTUDIO_SPEED", 1.0),
+    voicestudioApiKey: process.env.VOICESTUDIO_API_KEY || undefined,
+    voicestudioTimeoutMs: intDefault("VOICESTUDIO_TIMEOUT_MS", 300000),
     tiktok: {
       displayName: process.env.TIKTOK_DISPLAY_NAME ?? "Công nghệ 24h",
       handle: process.env.TIKTOK_HANDLE ?? "@congnghe24h",
       followers: process.env.TIKTOK_FOLLOWERS ?? "1.2M followers",
       avatarUrl: process.env.TIKTOK_AVATAR_URL || undefined,
     },
+    brandTag: process.env.BRAND_TAG ?? "BLOG IT",
+    brandLogoPath: process.env.BRAND_LOGO_PATH || undefined,
+    brandWordmarkPath: process.env.BRAND_WORDMARK_PATH || undefined,
     ttsConcurrency: intDefault("TTS_CONCURRENCY", 1),
     videoTheme,
   };

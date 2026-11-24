@@ -125,6 +125,22 @@ npm run pipeline -- tests/fixtures/sample-script-no-image.json
 
 ---
 
+## 🏢 Bản SORATA (nhánh `sorata`)
+
+Các thay đổi so với bản gốc:
+
+- **Theme `sorata-dark`** (`VIDEO_THEME=sorata-dark`, mặc định cho clip): màu SORATA trên nền tối — nền xanh than `#16232F`, thẻ `#2C4358`, chữ kem, nhấn terracotta, không hiệu ứng phát sáng; Be Vietnam Pro + Noto Sans.
+- **Theme `sorata`** (`VIDEO_THEME=sorata`): bản nền kem giống website, dùng khi cần clip sáng.
+- **Header tuỳ biến**: `BRAND_TAG` (dòng nhỏ dưới tên kênh) và `BRAND_LOGO_PATH` (logo trong ô icon). `BRAND_WORDMARK_PATH` thay tên kênh gõ chữ ở cảnh cuối bằng logo chữ SORATA. Avatar cuối video và logo góc trên lấy từ bộ logo SORATA trên Drive (`assets/brand/`: icon trắng cho nền tối, icon xanh cho nền sáng).
+- **Giọng VoiceStudio** (`TTS_PROVIDER=voicestudio`): mở app VoiceStudio trước khi chạy. Nếu app chưa bật, pipeline báo lỗi rõ và bạn có thể đổi lại `TTS_PROVIDER=edge-tts`.
+- **Âm lượng chuẩn mạng xã hội**: voice + SFX được chuẩn hoá -14 LUFS / -2 dBTP.
+- **Quy tắc nội dung trong skill `/create-news-video`**: không bịa số liệu, nêu căn cứ pháp lý khi nguồn có, và **dừng lại cho bạn duyệt kịch bản** trước khi render.
+- **SFX**: chỉ dùng file CC0/được phép thương mại, ghi nguồn trong `assets/sfx/SOURCES.md`; không dùng `npm run sfx:download` cho video doanh nghiệp.
+
+Trước khi đăng video đầu tiên: điền `TIKTOK_HANDLE` và `TIKTOK_FOLLOWERS` thật trong `.env.local`.
+
+---
+
 ## 🎙️ Lựa chọn giọng đọc (TTS)
 
 Chuyển đổi provider linh hoạt trong `.env.local` qua biến `TTS_PROVIDER`:
@@ -135,6 +151,7 @@ Chuyển đổi provider linh hoạt trong `.env.local` qua biến `TTS_PROVIDER
 | **LucyLab** | `TTS_PROVIDER=lucylab` | Rẻ (~25k/1M ký tự) | Giọng voice cloning tiếng Việt tự nhiên, tự động kèm SRT subtitle |
 | **Vbee** | `TTS_PROVIDER=vbee` | Trả phí Vbee API | Giọng đọc truyền cảm, chuẩn phong cách phát thanh viên tin tức |
 | **ElevenLabs** | `TTS_PROVIDER=elevenlabs` | Trả phí ElevenLabs | Đa ngôn ngữ, chất lượng phòng thu điện ảnh, tuỳ biến cao |
+| **VoiceStudio** | `TTS_PROVIDER=voicestudio` | 0đ (chạy trên máy, cần GPU) | Giọng nhân bản của chính bạn qua app [VoiceStudio](https://github.com/debpalash/VoiceStudio). Dùng engine `voxcpm2` (Apache-2.0); không dùng `omnivoice` cho video thương mại (model CC-BY-NC) |
 
 ---
 

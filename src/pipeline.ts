@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir, copyFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import pLimit from "p-limit";
@@ -11,6 +11,7 @@ import { indexSfxLibrary, pickSfxForScene, defaultPlayback } from "./assets/sfx-
 import { existsSync } from "node:fs";
 import { composeHtml } from "./render/html-composer.js";
 import { renderWithHyperframes } from "./render/hyperframes-runner.js";
+import { copyThemeFiles, prepareBrandAssets } from "./render/project-files.js";
 import { log } from "./utils/logger.js";
 
 const TOTAL_STEPS = 8;
@@ -26,7 +27,6 @@ const SCENE_GAP_SEC = 0.3;
 const OUTRO_HOLD_SEC = 3;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const TPL_DIR = join(__dirname, "render", "templates");
 /** Path to the SFX library (relative to project root) */
 const SFX_DIR = join(__dirname, "..", "assets", "sfx");
 
@@ -54,6 +54,7 @@ export async function runPipeline(scriptPath: string): Promise<void> {
       cfg.ttsProvider === "edge-tts" ? cfg.edgeTtsVoice
       : cfg.ttsProvider === "lucylab" ? cfg.lucylabVoiceId!
       : cfg.ttsProvider === "elevenlabs" ? cfg.elevenlabsVoiceId!
+      : cfg.ttsProvider === "voicestudio" ? cfg.voicestudioVoice
       : cfg.vbeeVoiceCode;
   }
   const script: Script = ScriptSchema.parse(raw);
@@ -183,29 +184,7 @@ export async function runPipeline(scriptPath: string): Promise<void> {
   // STEP 6 — Compose HTML + write hyperframes project files
   log.step(6, TOTAL_STEPS, "Compose HTML + project files");
 
-  // Resolve TikTok avatar — download URL if provided, else copy bundled default
-  // Bundled avatar can be jpg/jpeg/png/webp — pick whichever exists
-  const findBundledAvatar = (): string => {
-    const baseDir = join(__dirname, "..", "assets");
-    for (const ext of ["jpg", "jpeg", "png", "webp"]) {
-      const p = join(baseDir, `avatar.${ext}`);
-      if (existsSync(p)) return p;
-    }
-    throw new Error(`No bundled avatar found. Place an image at assets/avatar.{jpg,png,webp}`);
-  };
-  const bundledAvatar = findBundledAvatar();
-  const ttAvatarExt = bundledAvatar.split(".").pop()!.toLowerCase();
-  const ttAvatarFile = `tiktok-avatar.${ttAvatarExt}`;
-  const ttAvatarOut = join(outputDir, ttAvatarFile);
-  if (cfg.tiktok.avatarUrl) {
-    const r = await fetchImage(cfg.tiktok.avatarUrl, ttAvatarOut);
-    if (!r.success) {
-      log.warn(`TikTok avatar download failed: ${r.reason} → falling back to bundled default`);
-      await copyFile(bundledAvatar, ttAvatarOut);
-    }
-  } else {
-    await copyFile(bundledAvatar, ttAvatarOut);
-  }
+  const brand = await prepareBrandAssets(cfg, outputDir);
 
   const html = composeHtml({
     script,
@@ -214,7 +193,10 @@ export async function runPipeline(scriptPath: string): Promise<void> {
     bgImageRelPath,
     audioRelPath: "voice.mp3",
     tiktok: cfg.tiktok,
-    tiktokAvatarRelPath: ttAvatarFile,
+    tiktokAvatarRelPath: brand.tiktokAvatarRelPath,
+    brandTag: cfg.brandTag,
+    brandLogoRelPath: brand.brandLogoRelPath,
+    brandWordmarkRelPath: brand.brandWordmarkRelPath,
     outroHoldSec: OUTRO_HOLD_SEC,
   });
 
@@ -230,12 +212,8 @@ export async function runPipeline(scriptPath: string): Promise<void> {
     createdAt: new Date().toISOString(),
   }, null, 2));
 
-  // Copy templates next to the index.html so relative paths resolve.
-  // base.html.tmpl + animations.js are shared across themes (structure/behavior);
-  // only styles.<theme>.css differs (visual look), and always lands as "styles.css".
-  const themeFile = cfg.videoTheme === "light-pro" ? "styles.light-pro.css" : "styles.css";
-  await copyFile(join(TPL_DIR, themeFile),       join(outputDir, "styles.css"));
-  await copyFile(join(TPL_DIR, "animations.js"), join(outputDir, "animations.js"));
+  // Copy the theme CSS (always lands as "styles.css") + shared animations.js
+  await copyThemeFiles(outputDir, cfg.videoTheme);
 
   // STEP 7
   log.step(7, TOTAL_STEPS, "Render with hyperframes");
