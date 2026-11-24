@@ -59,6 +59,8 @@ export interface Config {
   brandTag: string;
   /** Optional path to a square logo image shown in the header icon box. */
   brandLogoPath?: string;
+  /** Optional path to the full wordmark shown instead of the channel name in the outro. */
+  brandWordmarkPath?: string;
 
   ttsConcurrency: number;
 
@@ -182,6 +184,7 @@ export function loadConfig(): Config {
     },
     brandTag: process.env.BRAND_TAG ?? "BLOG IT",
     brandLogoPath: process.env.BRAND_LOGO_PATH || undefined,
+    brandWordmarkPath: process.env.BRAND_WORDMARK_PATH || undefined,
     ttsConcurrency: intDefault("TTS_CONCURRENCY", 1),
     videoTheme,
   };

@@ -39,6 +39,8 @@ export interface ComposeArgs {
   brandTag?: string;
   /** Relative path to a logo image for the header icon box. Omit to keep the ">_" text icon. */
   brandLogoRelPath?: string;
+  /** Relative path to the full wordmark, shown instead of the channel name text in the outro. */
+  brandWordmarkRelPath?: string;
   /** Extra seconds added to outro scene visual duration after voice ends (TikTok card hold). Default 3. */
   outroHoldSec?: number;
 }
@@ -65,7 +67,7 @@ export function composeHtml(args: ComposeArgs): string {
 
   // Render scenes
   const sceneHtml = timing.map(({ scene, start, duration }) => {
-    return renderScene(scene, start, duration, bgImageRelPath, tiktok, tiktokAvatar);
+    return renderScene(scene, start, duration, bgImageRelPath, tiktok, tiktokAvatar, args.brandWordmarkRelPath);
   }).join("\n");
 
   // Persistent shell — uses tiktok handle in footer
@@ -128,6 +130,7 @@ function renderScene(
   bgImageRelPath: string | null,
   tiktok: TiktokConfig,
   tiktokAvatarRelPath: string,
+  brandWordmarkRelPath?: string,
 ): string {
   const td = scene.templateData;
 
@@ -156,7 +159,7 @@ function renderScene(
       layoutName = "callout";
       break;
     case "outro":
-      inner = renderOutroInner(td, tiktok, tiktokAvatarRelPath);
+      inner = renderOutroInner(td, tiktok, tiktokAvatarRelPath, brandWordmarkRelPath);
       layoutName = "outro";
       break;
     default: {
@@ -266,12 +269,17 @@ function renderOutroInner(
   td: Extract<TemplateDataType, { template: "outro" }>,
   tiktok: TiktokConfig,
   avatarRelPath: string,
+  wordmarkRelPath?: string,
 ): string {
   const ttCard = renderTiktokCard(tiktok, avatarRelPath);
+  // Wordmark image replaces the typed channel name; the channel name stays as alt text.
+  const channel = wordmarkRelPath
+    ? `<img class="out-channel-logo" src="${escapeHtml(wordmarkRelPath)}" alt="${escapeHtml(td.channelName)}" />`
+    : escapeHtml(td.channelName);
   return `
 <div class="layout-outro">
   <div class="out-cta-top">${escapeHtml(td.ctaTop)}</div>
-  <div class="out-channel">${escapeHtml(td.channelName)}</div>
+  <div class="out-channel">${channel}</div>
   <div class="out-underline"></div>
   <div class="out-source">Nguồn: ${escapeHtml(td.source)}</div>
 </div>

@@ -33,6 +33,7 @@ const ENV_KEYS = [
   "VIDEO_THEME",
   "BRAND_TAG",
   "BRAND_LOGO_PATH",
+  "BRAND_WORDMARK_PATH",
   "TTS_CONCURRENCY",
 ];
 
@@ -210,16 +211,19 @@ describe("loadConfig", () => {
       process.env.VIDEO_THEME = "sorata";
       process.env.BRAND_TAG = "KẾ TOÁN THUẾ";
       process.env.BRAND_LOGO_PATH = "assets/brand/SORATA_icon_xanh.png";
+      process.env.BRAND_WORDMARK_PATH = "assets/brand/SORATA_logo_xanh.png";
       const cfg = loadConfig();
       expect(cfg.videoTheme).toBe("sorata");
       expect(cfg.brandTag).toBe("KẾ TOÁN THUẾ");
       expect(cfg.brandLogoPath).toBe("assets/brand/SORATA_icon_xanh.png");
+      expect(cfg.brandWordmarkPath).toBe("assets/brand/SORATA_logo_xanh.png");
     });
 
     it("keeps the original header when brand settings are absent", () => {
       const cfg = loadConfig();
       expect(cfg.brandTag).toBe("BLOG IT");
       expect(cfg.brandLogoPath).toBeUndefined();
+      expect(cfg.brandWordmarkPath).toBeUndefined();
     });
 
     it("accepts VIDEO_THEME=sorata-dark (clip palette)", () => {

@@ -120,6 +120,7 @@ async function main() {
     tiktokAvatarRelPath: brand.tiktokAvatarRelPath,
     brandTag: cfg.brandTag,
     brandLogoRelPath: brand.brandLogoRelPath,
+    brandWordmarkRelPath: brand.brandWordmarkRelPath,
     outroHoldSec: 3,
   });
   await writeFile(join(outputDir, "index.html"), html);

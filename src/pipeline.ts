@@ -196,6 +196,7 @@ export async function runPipeline(scriptPath: string): Promise<void> {
     tiktokAvatarRelPath: brand.tiktokAvatarRelPath,
     brandTag: cfg.brandTag,
     brandLogoRelPath: brand.brandLogoRelPath,
+    brandWordmarkRelPath: brand.brandWordmarkRelPath,
     outroHoldSec: OUTRO_HOLD_SEC,
   });
 

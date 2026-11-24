@@ -29,6 +29,8 @@ export interface BrandAssets {
   tiktokAvatarRelPath: string;
   /** e.g. "brand-logo.png" — undefined when BRAND_LOGO_PATH is not set */
   brandLogoRelPath?: string;
+  /** e.g. "brand-wordmark.png" — undefined when BRAND_WORDMARK_PATH is not set */
+  brandWordmarkRelPath?: string;
 }
 
 function findBundledAvatar(): string {
@@ -58,16 +60,27 @@ export async function prepareBrandAssets(cfg: Config, outputDir: string): Promis
     await copyFile(bundledAvatar, avatarOut);
   }
 
-  let brandLogoRelPath: string | undefined;
-  if (cfg.brandLogoPath) {
-    const src = isAbsolute(cfg.brandLogoPath) ? cfg.brandLogoPath : resolve(PROJECT_ROOT, cfg.brandLogoPath);
-    if (existsSync(src)) {
-      brandLogoRelPath = `brand-logo${extname(src).toLowerCase()}`;
-      await copyFile(src, join(outputDir, brandLogoRelPath));
-    } else {
-      log.warn(`BRAND_LOGO_PATH not found: ${src} → using the text icon instead`);
-    }
-  }
+  const brandLogoRelPath = await copyBrandFile(cfg.brandLogoPath, outputDir, "brand-logo", "BRAND_LOGO_PATH", "the text icon");
+  const brandWordmarkRelPath = await copyBrandFile(cfg.brandWordmarkPath, outputDir, "brand-wordmark", "BRAND_WORDMARK_PATH", "the channel name as text");
 
-  return { tiktokAvatarRelPath, brandLogoRelPath };
+  return { tiktokAvatarRelPath, brandLogoRelPath, brandWordmarkRelPath };
+}
+
+/** Copy an optional brand image (absolute, or relative to the project root) into the output dir. */
+async function copyBrandFile(
+  path: string | undefined,
+  outputDir: string,
+  baseName: string,
+  envName: string,
+  fallback: string,
+): Promise<string | undefined> {
+  if (!path) return undefined;
+  const src = isAbsolute(path) ? path : resolve(PROJECT_ROOT, path);
+  if (!existsSync(src)) {
+    log.warn(`${envName} not found: ${src} → using ${fallback} instead`);
+    return undefined;
+  }
+  const rel = `${baseName}${extname(src).toLowerCase()}`;
+  await copyFile(src, join(outputDir, rel));
+  return rel;
 }

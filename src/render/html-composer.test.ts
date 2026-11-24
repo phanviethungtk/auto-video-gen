@@ -123,4 +123,16 @@ describe("composeHtml", () => {
     expect(html).toContain('<div class="brand-icon">&gt;_</div>');
     expect(html).toContain('<div class="brand-tag">BLOG IT</div>');
   });
+
+  it("shows the wordmark image in the outro when given, keeping the name as alt text", () => {
+    const script = JSON.parse(readFileSync("tests/fixtures/sample-script-no-image.json", "utf8")) as Script;
+    const sceneAudio = script.scenes.map((s) => ({ id: s.id, durationSec: 5 }));
+    const outro = script.scenes.find((s) => s.templateData.template === "outro")!;
+    const name = (outro.templateData as { channelName: string }).channelName;
+    const html = composeHtml({
+      script, sceneAudio, gapSec: 0.3, bgImageRelPath: null, audioRelPath: "voice.mp3",
+      brandWordmarkRelPath: "brand-wordmark.png",
+    });
+    expect(html).toContain(`<div class="out-channel"><img class="out-channel-logo" src="brand-wordmark.png" alt="${name}" /></div>`);
+  });
 });
