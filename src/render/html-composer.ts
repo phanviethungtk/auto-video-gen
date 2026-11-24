@@ -35,6 +35,10 @@ export interface ComposeArgs {
   tiktok?: TiktokConfig;
   /** Relative path to avatar image inside the output dir (e.g. "tiktok-avatar.jpg"). */
   tiktokAvatarRelPath?: string;
+  /** Small tag under the channel name in the header. Default "BLOG IT". */
+  brandTag?: string;
+  /** Relative path to a logo image for the header icon box. Omit to keep the ">_" text icon. */
+  brandLogoRelPath?: string;
   /** Extra seconds added to outro scene visual duration after voice ends (TikTok card hold). Default 3. */
   outroHoldSec?: number;
 }
@@ -65,7 +69,7 @@ export function composeHtml(args: ComposeArgs): string {
   }).join("\n");
 
   // Persistent shell — uses tiktok handle in footer
-  const shellHtml = renderShell(script.metadata, tiktok);
+  const shellHtml = renderShell(script.metadata, tiktok, args.brandTag ?? "BLOG IT", args.brandLogoRelPath);
 
   const animJs = readFileSync(join(TPL_DIR, "animations.js"), "utf8");
 
@@ -80,7 +84,12 @@ export function composeHtml(args: ComposeArgs): string {
 }
 
 // ── PERSISTENT SHELL ───────────────────────────────────────────────────────
-function renderShell(metadata: Script["metadata"], tiktok: TiktokConfig): string {
+function renderShell(
+  metadata: Script["metadata"],
+  tiktok: TiktokConfig,
+  brandTag: string,
+  brandLogoRelPath?: string,
+): string {
   const channel = escapeHtml(metadata.channel);
   const domain = escapeHtml(metadata.source.domain);
   const handle = escapeHtml(tiktok.handle);
@@ -89,10 +98,12 @@ function renderShell(metadata: Script["metadata"], tiktok: TiktokConfig): string
 <div class="shell-bg"></div>
 
 <div class="brand-shell-header">
-  <div class="brand-icon">&gt;_</div>
+  ${brandLogoRelPath
+    ? `<div class="brand-icon brand-icon--logo"><img src="${escapeHtml(brandLogoRelPath)}" alt="${channel}" /></div>`
+    : `<div class="brand-icon">&gt;_</div>`}
   <div class="brand-text">
     <div class="brand-name">${channel}</div>
-    <div class="brand-tag">BLOG IT</div>
+    <div class="brand-tag">${escapeHtml(brandTag)}</div>
   </div>
 </div>
 

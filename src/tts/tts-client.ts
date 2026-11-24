@@ -1,7 +1,7 @@
 /**
  * Common TTS client interface.
  *
- * All providers (LucyLab, ElevenLabs) implement this so the pipeline
+ * All providers (Edge TTS, LucyLab, ElevenLabs, Vbee, VoiceStudio) implement this so the pipeline
  * can swap providers without changing orchestration logic.
  */
 export interface TtsClient {
@@ -18,6 +18,7 @@ import { EdgeTtsClient } from "./edge-tts-client.js";
 import { LucylabClient } from "./lucylab-client.js";
 import { ElevenLabsClient } from "./elevenlabs-client.js";
 import { VbeeClient } from "./vbee-client.js";
+import { VoiceStudioClient } from "./voicestudio-client.js";
 
 export function createTtsClient(cfg: Config): TtsClient {
   switch (cfg.ttsProvider) {
@@ -52,6 +53,16 @@ export function createTtsClient(cfg: Config): TtsClient {
         speedRate: cfg.vbeeSpeedRate,
         pollIntervalMs: cfg.vbeePollIntervalMs,
         pollTimeoutMs: cfg.vbeePollTimeoutMs,
+      });
+    case "voicestudio":
+      return new VoiceStudioClient({
+        endpoint: cfg.voicestudioEndpoint,
+        model: cfg.voicestudioModel,
+        voice: cfg.voicestudioVoice,
+        language: cfg.voicestudioLanguage,
+        speed: cfg.voicestudioSpeed,
+        apiKey: cfg.voicestudioApiKey,
+        timeoutMs: cfg.voicestudioTimeoutMs,
       });
     default: {
       const _never: never = cfg.ttsProvider;
